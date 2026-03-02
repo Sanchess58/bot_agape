@@ -63,22 +63,22 @@ async def reg_gender(message: types.Message, state: FSMContext):
         return
     await state.update_data(gender=message.text)
     await state.set_state(Registration.birthday)
-    await message.answer("Введите вашу дату рождения (в формате ДД-ММ-ГГГГ):")
+    await message.answer("Введите вашу дату рождения (в формате ДД.ММ.ГГГГ):")
 
 
 @users_router.message(Registration.birthday)
 async def reg_birthday(message: types.Message, state: FSMContext):
     try:
-        date_obj = datetime.strptime(message.text, "%d-%m-%Y")
-        birthday = datetime.strftime(date_obj, "%Y-%d-%m")
+        date_obj = datetime.strptime(message.text, "%d.%m.%Y")
+        birthday = datetime.strftime(date_obj, "%Y-%m-%d")
     except ValueError:
-        await message.answer("❌ Некорректно указана дата! Введите вашу дату рождения (в формате ДД-ММ-ГГГГ):")
+        await message.answer("❌ Некорректно указана дата! Введите вашу дату рождения (в формате ДД.ММ.ГГГГ):")
         return
 
     await state.update_data(birthday=birthday)
     await state.set_state(Registration.church)
     await message.answer("Укажите храм, куда ходите:")
-    
+
 
 @users_router.message(Registration.church)
 async def reg_church(message: types.Message, state: FSMContext):
@@ -115,8 +115,11 @@ async def reg_referral_source(message: types.Message, state: FSMContext):
             await menu(message)
 
     except Exception:
-        await message.answer("⚠️ Ошибка при регистрации! Попробуйте снова!")
-        await state.set_state(Registration.first_name)
-        await message.answer("Введите ваше имя:")
-
-    await state.clear()
+        keyboard = types.ReplyKeyboardMarkup(
+            keyboard=[[types.KeyboardButton(text="Регистрация")]],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+        await message.answer("⚠️ Ошибка при регистрации! Попробуйте снова!", reply_markup=keyboard)
+    finally:
+        await state.clear()

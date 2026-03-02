@@ -22,6 +22,7 @@ async def start(message: types.Message):
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[[types.KeyboardButton(text="Регистрация")]],
         resize_keyboard=True,
+        one_time_keyboard=True,
     )
 
     await message.answer(WELCOME_TEXT, reply_markup=keyboard)
