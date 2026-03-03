@@ -109,6 +109,7 @@ async def reg_referral_source(message: types.Message, state: FSMContext):
             response = await client.post(f"{API_BASE_URL}/users/", json=user_payload)
             if response.status_code == httpx.codes.BAD_REQUEST:
                 await message.answer("Аккаунт уже зарегистрирован")
+                await state.clear()
                 return await menu(message)
             response.raise_for_status()
             await message.answer("Регистрация прошла успешно!")
