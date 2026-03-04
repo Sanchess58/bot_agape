@@ -8,7 +8,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 
 from constants import DAY_OF_THE_WEEK, MENU_BUTTON_TEXT
 from events.callbacks import ConfirmationUserEventCallback, GetUserEventCallback, RegisterEventCallback
-from events.utils import builder_buttons_by_event, format_event, generate_event_message
+from events.utils import builder_button_event_users, builder_info_register_button, format_event, generate_event_message
 from events.requests import events, get_event, my_events, register_to_event, users_at_event, user_is_attended
 from routers import events_router
 from users.routers import get_users
@@ -91,11 +91,12 @@ async def date_selected(message: types.Message):
                 datetime.fromisoformat(event["date_and_time"]).date() >= datetime.now().date() and
                 event["id"] not in [register_event["id"] for register_event in register_events]
             ):
-                await builder_buttons_by_event(builder, event["id"], message.from_user.id, "✅ Зарегистрироваться")
+                await builder_info_register_button(builder, event["id"], message.from_user.id, "✅ Зарегистрироваться")
 
             elif event["id"] in [register_event["id"] for register_event in register_events]:
-                await builder_buttons_by_event(builder, event["id"], message.from_user.id, "✔️ Вы зарегистрированы!")
+                await builder_info_register_button(builder, event["id"], message.from_user.id, "✔️ Вы зарегистрированы!")
 
+            await builder_button_event_users(builder, event["id"], message.from_user.id)
             await generate_event_message(builder, event, message)
 
     except Exception as e:
@@ -111,7 +112,7 @@ async def event_register(callback: types.CallbackQuery, callback_data: RegisterE
             await callback.answer("Вы уже зарегистрированы на мероприятие!")
 
         builder = InlineKeyboardBuilder()
-        await builder_buttons_by_event(builder, callback_data.event_id, callback.message.from_user.id, "✔️ Вы зарегистрированы!")
+        await builder_button_event_users(builder, callback_data.event_id, callback.message.from_user.id, "✔️ Вы зарегистрированы!")
         new_markup = builder.as_markup()
 
         current_markup_dict = callback.message.reply_markup.model_dump() if callback.message.reply_markup else None
@@ -128,10 +129,10 @@ async def event_register(callback: types.CallbackQuery, callback_data: RegisterE
 @events_router.callback_query(GetUserEventCallback.filter())
 async def event_users(callback: types.CallbackQuery, callback_data: RegisterEventCallback):
     try:
-        event_users = await users_at_event(callback.from_user.id, callback_data.event_id)
-        event_users = {eu["user_id"]: eu["attended"] for eu in event_users}
+        users_in_event = await users_at_event(callback.from_user.id, callback_data.event_id)
+        attended_users = {eu["user_id"]: eu["attended"] for eu in users_in_event}
         event = await get_event(callback.from_user.id, callback_data.event_id)
-        users = await get_users(callback.from_user.id, ids=[eu for eu in event_users.keys()])
+        users = await get_users(callback.from_user.id, ids=[eu for eu in attended_users.keys()])
 
         attended = "✅ Присутствовал"
         not_attended = "❌ Отсутствовал"
@@ -139,7 +140,7 @@ async def event_users(callback: types.CallbackQuery, callback_data: RegisterEven
         for user in users:
             user_id = user["id"]
             text = format_user(user)
-            is_attended = event_users[user_id]
+            is_attended = attended_users[user_id]
             if datetime.fromisoformat(event["date_and_time"]) > datetime.now():
                 await callback.message.answer(text=text, parse_mode="html")
             elif is_attended is None:

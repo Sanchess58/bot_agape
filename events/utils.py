@@ -7,22 +7,29 @@ from users.services import user_info
 from .callbacks import GetUserEventCallback, RegisterEventCallback
 
 
-async def builder_buttons_by_event(
+async def builder_info_register_button(
     builder: InlineKeyboardBuilder,
     event_id: int,
-    telegram_id: int,
     button_text: str,
-) -> list[InlineKeyboardBuilder]:
+) -> None:
     builder.button(
         text=button_text,
         callback_data=RegisterEventCallback(event_id=event_id).pack()
     )
+
+
+async def builder_button_event_users(
+    builder: InlineKeyboardBuilder,
+    event_id: int,
+    telegram_id: str,
+) -> None:
     user = await user_info(telegram_id)
-    if user["is_admin"]:
-        builder.button(
-            text="Участники",
-            callback_data=GetUserEventCallback(event_id=event_id).pack()
-        )
+    if not user["is_admin"]:
+        return
+    builder.button(
+        text="Участники",
+        callback_data=GetUserEventCallback(event_id=event_id).pack()
+    )
 
 
 def format_event(event: dict) -> str:
