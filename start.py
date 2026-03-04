@@ -25,7 +25,7 @@ async def start(message: types.Message):
         one_time_keyboard=True,
     )
 
-    await message.answer(WELCOME_TEXT, reply_markup=keyboard)
+    await message.answer(WELCOME_TEXT, reply_markup=keyboard, parse_mode="html")
 
 if __name__ == "__main__":
     asyncio.run(main())
