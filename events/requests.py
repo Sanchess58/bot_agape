@@ -42,6 +42,15 @@ async def register_to_event(telegram_id: int, event_id: int) -> Response:
     return resp
 
 
+async def cancel_register_to_event(telegram_id: int, event_id: int) -> Response:
+    resp = await APIClient().request(
+        method="DELETE",
+        url=f"/events/{event_id}/register/cancel",
+        telegram_id=telegram_id,
+    )
+    return resp
+
+
 async def users_at_event(telegram_id: int, event_id: int) -> dict[str, Any]:
     resp = await APIClient().request(
         method="GET",

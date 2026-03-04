@@ -5,7 +5,7 @@ def format_user(user: dict) -> str:
     birthday = datetime.fromisoformat(user["birthday"]) if user.get("birthday") else ""
     return (
         f"👤 <b>{user['first_name']} {user['last_name']}</b>\n"
-        f"🎂 {birthday.date() if birthday else 'Не указано'}\n"
+        f"🎂 {datetime.strftime(birthday.date(), '%d.%m.%Y') if birthday else 'Не указано'}\n"
         f"🔗 @{user['login']}\n\n"
     )
 

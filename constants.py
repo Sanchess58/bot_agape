@@ -2,6 +2,7 @@ import os
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 API_BASE_URL = os.getenv("API_BASE_URL")
+
 WELCOME_TEXT = (
     """
 👋 Добро пожаловать!
@@ -9,7 +10,10 @@ WELCOME_TEXT = (
 Регистрируйся и получи доступ ко всему функционалу!
     """
 )
+
 DAY_OF_THE_WEEK = 7
+HOUR_IN_SECONDS = 60 * 60
+DAY_IN_HOURS = 24 * HOUR_IN_SECONDS
 
 MENU_BUTTON_TEXT = "🏠 Меню"
 

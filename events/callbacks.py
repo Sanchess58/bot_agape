@@ -5,6 +5,10 @@ class RegisterEventCallback(CallbackData, prefix="register_event"):
     event_id: int
 
 
+class CancelRegisterEventCallback(CallbackData, prefix="cancel_register_event"):
+    event_id: int
+
+
 class GetUserEventCallback(CallbackData, prefix="user_event"):
     event_id: int
 
