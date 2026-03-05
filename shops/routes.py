@@ -22,7 +22,7 @@ async def products(message: types.Message):
         for product in products: 
             builder.button(
                 text="✅ Купить",
-                callback_data=BuyShopItemCallback(shop_item_id=product["id"], shop_item_name=product["name"]).pack()
+                callback_data=BuyShopItemCallback(shop_item_id=product["id"]).pack()
             )
             await message.answer_photo(
                 photo=product["photo_url"],
@@ -47,7 +47,7 @@ async def buy_product(callback: types.CallbackQuery, callback_data: BuyShopItemC
         if response.status_code == httpx.codes.BAD_REQUEST:
             return await callback.answer(response.json()["detail"])
         await callback.message.answer(
-            f"Поздравляем с покупкой <b>{callback_data.shop_item_name}</b> 🎉\nЗа подробностями обращайтесь к @sancheser",
+            f"Поздравляем с покупкой 🎉\nЗа подробностями обращайтесь к @sancheser",
             parse_mode="html",
         )
     except Exception as err:
