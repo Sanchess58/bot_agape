@@ -11,19 +11,20 @@ from routers import shops_router
 
 
 @shops_router.message(F.text == "🛍️ Магазин")
-async def products(message: types.Message):
+async def products(message: types.Message) -> None | types.Message:
     products = await get_products(message.from_user.id)
-    builder = InlineKeyboardBuilder()
 
     try:
         if not products:
             return await message.answer("Совсем скоро в магазине будут товары за монетки")
 
-        for product in products: 
+        for product in products:
+            builder = InlineKeyboardBuilder()
             builder.button(
                 text="✅ Купить",
                 callback_data=BuyShopItemCallback(shop_item_id=product["id"]).pack()
             )
+
             await message.answer_photo(
                 photo=product["photo_url"],
                 caption=format_product(product),
@@ -37,7 +38,7 @@ async def products(message: types.Message):
 
 
 @shops_router.callback_query(BuyShopItemCallback.filter())
-async def buy_product(callback: types.CallbackQuery, callback_data: BuyShopItemCallback):
+async def buy_product(callback: types.CallbackQuery, callback_data: BuyShopItemCallback) -> None | types.Message:
     try:
         response = await buy_product_request(
             telegram_id=callback.from_user.id,

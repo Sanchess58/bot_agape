@@ -9,7 +9,7 @@ from users.services import user_info
 
 @main_menu_router.message((F.text == "🏠 Меню"))
 @main_menu_router.message(Command("menu"))
-async def menu(message: types.Message):
+async def menu(message: types.Message) -> None:
     builder = ReplyKeyboardBuilder()
     for button in [
         types.KeyboardButton(text="📅 Мероприятия"),

@@ -5,10 +5,10 @@ from constants import API_BASE_URL
 
 
 class APIClient:
-    def __init__(self):
+    def __init__(self) -> None:
         self._token: Optional[str] = None
 
-    async def _login(self, telegram_id: int):
+    async def _login(self, telegram_id: int) -> None:
         async with httpx.AsyncClient() as client:
             resp = await client.post(
                 f"{API_BASE_URL}/users/login",

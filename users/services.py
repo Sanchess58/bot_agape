@@ -1,7 +1,9 @@
+from typing import Any
+
 from api_client import APIClient
 
 
-async def user_info(telegram_id: int):
+async def user_info(telegram_id: int) -> dict[str, Any]:
     resp = await APIClient().request(
         "GET",
         f"/users/{telegram_id}",
@@ -10,7 +12,7 @@ async def user_info(telegram_id: int):
     return resp.json()
 
 
-async def get_users(telegram_id: int, ids: list[int] | None = None):
+async def get_users(telegram_id: int, ids: list[int] | None = None) -> dict[str, Any]:
     resp = await APIClient().request(
         "GET",
         "/users/",

@@ -13,7 +13,9 @@ from events.callbacks import (
     GetUserEventCallback,
     RegisterEventCallback,
 )
-from events.utils import builder_button_event_users, builder_info_register_button, format_event, generate_event_message
+from events.utils import (
+    builder_button_event_users, builder_info_register_button, format_event, generate_event_message
+)
 from events.requests import (
     cancel_register_to_event, events, get_event, my_events, register_to_event, users_at_event, user_is_attended
 )
@@ -24,7 +26,7 @@ from utils import get_name_weekday
 
 
 @events_router.message(F.text == "📅 Мероприятия")
-async def menu_events(message: types.Message):
+async def menu_events(message: types.Message) -> None:
     builder = ReplyKeyboardBuilder()
     builder.add(types.KeyboardButton(text=MENU_BUTTON_TEXT))
     builder.add(types.KeyboardButton(text="📅 Мои мероприятия"))
@@ -35,7 +37,7 @@ async def menu_events(message: types.Message):
 
 
 @events_router.message(F.text == "📅 Календарь мероприятий")
-async def calendar_events(message: types.Message):
+async def calendar_events(message: types.Message) -> None | types.Message:
     year = datetime.now().year
     month = datetime.now().month
 
@@ -50,7 +52,7 @@ async def calendar_events(message: types.Message):
     if not events_list:
         return await message.answer("Мероприятий еще нет 😞 Загляните позже!")
 
-    events_days = {datetime.fromisoformat(event["date_and_time"]).day for event in events_list}
+    events_days = sorted({datetime.fromisoformat(event["date_and_time"]).day for event in events_list}) # TODO: Отсортировать по возрастанию
     for day in events_days:
         builder.add(types.KeyboardButton(text=f"{day} {get_name_weekday(calendar.weekday(year, month, day))}"))
     builder.adjust(DAY_OF_THE_WEEK)
@@ -59,7 +61,7 @@ async def calendar_events(message: types.Message):
 
 
 @events_router.message(F.text == "📅 Мои мероприятия")
-async def my_events_router(message: types.Message):
+async def my_events_router(message: types.Message) -> None | types.Message:
     events = await my_events(message.from_user.id)
     builder = InlineKeyboardBuilder()
     try:
@@ -119,7 +121,7 @@ async def date_selected(message: types.Message):
 
 
 @events_router.callback_query(RegisterEventCallback.filter())
-async def event_register(callback: types.CallbackQuery, callback_data: RegisterEventCallback):
+async def event_register(callback: types.CallbackQuery, callback_data: RegisterEventCallback) -> None:
     try:
         response = await register_to_event(callback.from_user.id, callback_data.event_id)
         if response.status_code == httpx.codes.BAD_REQUEST:
@@ -127,6 +129,8 @@ async def event_register(callback: types.CallbackQuery, callback_data: RegisterE
 
         builder = InlineKeyboardBuilder()
         await builder_info_register_button(builder, callback_data.event_id, "✔️ Вы зарегистрированы!")
+        await builder_button_event_users(builder, callback_data.event_id, callback.message.from_user.id)
+
         new_markup = builder.as_markup()
 
         current_markup_dict = callback.message.reply_markup.model_dump() if callback.message.reply_markup else None
@@ -137,11 +141,13 @@ async def event_register(callback: types.CallbackQuery, callback_data: RegisterE
 
     except Exception as e:
         logging.error(msg=e)
-        return await callback.answer("⚠️ Ошибка при регистрации!\nОбратитесь к @sancheser")
+        await callback.answer("⚠️ Ошибка при регистрации!\nОбратитесь к @sancheser")
 
 
 @events_router.callback_query(GetUserEventCallback.filter())
-async def event_users(callback: types.CallbackQuery, callback_data: RegisterEventCallback):
+async def event_users(
+    callback: types.CallbackQuery, callback_data: RegisterEventCallback
+) -> None | types.Message:
     try:
         users_in_event = await users_at_event(callback.from_user.id, callback_data.event_id)
         attended_users = {eu["user_id"]: eu["attended"] for eu in users_in_event}
@@ -155,15 +161,27 @@ async def event_users(callback: types.CallbackQuery, callback_data: RegisterEven
             user_id = user["id"]
             text = format_user(user)
             is_attended = attended_users[user_id]
+
             if datetime.fromisoformat(event["date_and_time"]) > datetime.now():
                 await callback.message.answer(text=text, parse_mode="html")
+
             elif is_attended is None:
                 builder = InlineKeyboardBuilder()
-                builder.button(text=attended, callback_data=ConfirmationUserEventCallback(event_id=callback_data.event_id, user_id=user["id"], attended=True).pack())
-                builder.button(text=not_attended, callback_data=ConfirmationUserEventCallback(event_id=callback_data.event_id, user_id=user["id"], attended=False).pack())
+                for text in [attended, not_attended]:
+                    builder.button(
+                        text=text,
+                        callback_data=ConfirmationUserEventCallback(
+                            event_id=callback_data.event_id,
+                            user_id=user["id"],
+                            attended=text == attended,
+                        ).pack()
+                    )
                 await callback.message.answer(text=text, reply_markup=builder.as_markup(), parse_mode="html")
             else:
-                await callback.message.answer(text=text + f"\n{attended}" if is_attended else text + f"\n{not_attended}", parse_mode="html")
+                await callback.message.answer(
+                    text=text + f"\n{attended}" if is_attended else text + f"\n{not_attended}",
+                    parse_mode="html",
+                )
 
     except Exception as e:
         logging.error(msg=e)
@@ -171,7 +189,9 @@ async def event_users(callback: types.CallbackQuery, callback_data: RegisterEven
 
 
 @events_router.callback_query(ConfirmationUserEventCallback.filter())
-async def event_user_confirmation(callback: types.CallbackQuery, callback_data: ConfirmationUserEventCallback):
+async def event_user_confirmation(
+    callback: types.CallbackQuery, callback_data: ConfirmationUserEventCallback
+) -> None:
     resp = await user_is_attended(
         telegram_id=callback.from_user.id,
         event_id=callback_data.event_id,
@@ -184,7 +204,7 @@ async def event_user_confirmation(callback: types.CallbackQuery, callback_data: 
 
 
 @events_router.callback_query(CancelRegisterEventCallback.filter())
-async def cancel_event_register(callback: types.CallbackQuery, callback_data: RegisterEventCallback):
+async def cancel_event_register(callback: types.CallbackQuery, callback_data: RegisterEventCallback) -> None:
     try:
         response = await cancel_register_to_event(callback.from_user.id, callback_data.event_id)
         if response.status_code == httpx.codes.BAD_REQUEST:
@@ -196,7 +216,7 @@ async def cancel_event_register(callback: types.CallbackQuery, callback_data: Re
 
     except Exception as e:
         logging.error(msg=e)
-        return await callback.answer("⚠️ Ошибка при отмене регистрации!\nОбратитесь к @sancheser")
+        await callback.answer("⚠️ Ошибка при отмене регистрации!\nОбратитесь к @sancheser")
 
 
 # @events_router.message(lambda message: message.text == "➕ Добавить мероприятие")

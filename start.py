@@ -13,19 +13,19 @@ import shops.routes as shops
 import main_menu
 
 
-async def main():
+async def main() -> None:
     await dp.start_polling(bot)
 
 
 @dp.message(Command("start"))
-async def start(message: types.Message):
+async def start(message: types.Message) -> types.Message:
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[[types.KeyboardButton(text="Регистрация")]],
         resize_keyboard=True,
         one_time_keyboard=True,
     )
 
-    await message.answer(WELCOME_TEXT, reply_markup=keyboard, parse_mode="html")
+    return await message.answer(WELCOME_TEXT, reply_markup=keyboard, parse_mode="html")
 
 if __name__ == "__main__":
     asyncio.run(main())

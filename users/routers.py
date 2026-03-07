@@ -6,13 +6,13 @@ from .utils import format_user
 
 
 @users_router.message(F.text == "💵 Баланс")
-async def user_balance(message: types.Message):
+async def user_balance(message: types.Message) -> None:
     user = await user_info(message.from_user.id)
     await message.answer(text=f"Баланс: {user['balance']} 💵")
 
 
 @users_router.message(F.text == "👥 Пользователи")
-async def users(message: types.Message):
+async def users(message: types.Message) -> None:
     users = await get_users(message.from_user.id)
     last_index = len(users)
 
