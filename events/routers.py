@@ -63,12 +63,12 @@ async def calendar_events(message: types.Message) -> None | types.Message:
 @events_router.message(F.text == "📅 Мои мероприятия")
 async def my_events_router(message: types.Message) -> None | types.Message:
     events = await my_events(message.from_user.id)
-    builder = InlineKeyboardBuilder()
     try:
         if not events:
             return await message.answer("Вы не зарегистрированы ни на одно мероприятие 😞")
 
         for ev in events:
+            builder = InlineKeyboardBuilder()
             answer_data = {
                 "photo": ev["photo_url"],
                 "caption": format_event(ev),
@@ -129,7 +129,7 @@ async def event_register(callback: types.CallbackQuery, callback_data: RegisterE
 
         builder = InlineKeyboardBuilder()
         await builder_info_register_button(builder, callback_data.event_id, "✔️ Вы зарегистрированы!")
-        await builder_button_event_users(builder, callback_data.event_id, callback.message.from_user.id)
+        await builder_button_event_users(builder, callback_data.event_id, callback.from_user.id)
 
         new_markup = builder.as_markup()
 
@@ -199,7 +199,17 @@ async def event_user_confirmation(
         attented=callback_data.attended,
     )
     if resp.status_code == httpx.codes.NO_CONTENT:
+        # data = resp.json()
+        # reward = data["reward"]
+        # if reward < 0:
+        #     text = f"Списано {reward} монет за отсутствие на мероприятии {data['event_name']}. Текущий баланс 💵: {data['balance']}"
+        # else:
+        #     text = f"Начислено {reward} монет за присутствие на мероприятии {data['event_name']}. Текущий баланс 💵: {data['balance']}"
+
+        # await callback.message.answer(text)
+        # TODO: Дописать уведомление пользователю
         await callback.message.delete()
+
     await callback.answer("Пользователь отмечен")
 
 

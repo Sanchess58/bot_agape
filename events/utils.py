@@ -3,6 +3,8 @@ from typing import Any
 
 from aiogram import types
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from events.requests import users_at_event
 from users.services import user_info
 from .callbacks import GetUserEventCallback, RegisterEventCallback
 
@@ -26,8 +28,9 @@ async def builder_button_event_users(
     user = await user_info(telegram_id)
     if not user["is_admin"]:
         return
+    users_in_event = await users_at_event(telegram_id, event_id)
     builder.button(
-        text="Участники",
+        text=f"Участники ({len(users_in_event)})",
         callback_data=GetUserEventCallback(event_id=event_id).pack()
     )
 

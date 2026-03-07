@@ -1,6 +1,6 @@
 import os
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = "8763223737:AAErQC3fZLjSSibT19iI0HZD8gSShJEsnCA"
 API_BASE_URL = os.getenv("API_BASE_URL")
 
 WELCOME_TEXT = (
