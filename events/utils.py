@@ -41,7 +41,7 @@ def format_event(event: dict) -> str:
         f"📌 <b>{event['name']}</b>\n\n"
         f"📝 {event['description']}\n\n"
         f"📍 {event['location']}\n\n"
-        f"📅 {dt.strftime('%d.%m.%Y %H:%M')}\n\n"
+        f"📅 {dt.strftime('%d.%m.%Y %H:%M') if dt.hour != 0 else dt.strftime('%d.%m.%Y')}\n\n"  # TODO: Временный костыль
         f"💰 Награда: {event['reward']} монет\n\n"
     )
 
