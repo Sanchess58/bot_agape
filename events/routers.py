@@ -173,13 +173,13 @@ async def event_users(
                         callback_data=ConfirmationUserEventCallback(
                             event_id=callback_data.event_id,
                             user_id=user["id"],
-                            attended=text == attended,
+                            attended=button_text == attended,
                         ).pack()
                     )
                 await callback.message.answer(text=text, reply_markup=builder.as_markup(), parse_mode="html")
             else:
                 await callback.message.answer(
-                    text=text + f"\n{attended}" if is_attended else text + f"\n{not_attended}",
+                    text=text + attended if is_attended else text + not_attended,
                     parse_mode="html",
                 )
 
