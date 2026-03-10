@@ -167,9 +167,9 @@ async def event_users(
 
             elif is_attended is None:
                 builder = InlineKeyboardBuilder()
-                for text in [attended, not_attended]:
+                for button_text in [attended, not_attended]:
                     builder.button(
-                        text=text,
+                        text=button_text,
                         callback_data=ConfirmationUserEventCallback(
                             event_id=callback_data.event_id,
                             user_id=user["id"],
