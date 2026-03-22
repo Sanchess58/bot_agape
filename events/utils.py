@@ -4,7 +4,8 @@ from typing import Any
 from aiogram import types
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from events.requests import users_at_event
+from utils import base64_to_file
+from events.requests import get_event, users_at_event
 from users.services import user_info
 from .callbacks import GetUserEventCallback, RegisterEventCallback
 
@@ -47,14 +48,18 @@ def format_event(event: dict) -> str:
 
 
 async def generate_event_message(builder: InlineKeyboardBuilder, event: dict, message: types.Message) -> types.Message:
+    event = await get_event(event_id=event["id"], telegram_id=message.from_user.id)
     if not event["photo_url"]:
         return await message.answer(
             text=format_event(event),
             reply_markup=builder.as_markup(),
             parse_mode="HTML",
         )
+
+    photo_file = await base64_to_file(event)
+
     return await message.answer_photo(
-        photo=event["photo_url"],
+        photo=photo_file,
         caption=format_event(event),
         reply_markup=builder.as_markup(),
         parse_mode="HTML"

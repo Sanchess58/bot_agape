@@ -3,6 +3,8 @@ from typing import Optional
 
 from constants import API_BASE_URL
 
+TIMEOUT = 3600 # one minute
+
 
 class APIClient:
     def __init__(self) -> None:
@@ -26,7 +28,7 @@ class APIClient:
         if self._token:
             headers["Authorization"] = f"Bearer {self._token}"
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
             resp = await client.request(method, f"{API_BASE_URL}{url}", headers=headers, **kwargs)
 
             if resp.status_code == httpx.codes.UNAUTHORIZED:

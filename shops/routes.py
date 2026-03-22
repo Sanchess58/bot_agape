@@ -4,6 +4,7 @@ import httpx
 from aiogram import types, F
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from utils import base64_to_file
 from shops.callbacks import BuyShopItemCallback
 from shops.requests import buy_product_request, get_products
 from shops.utils import format_product
@@ -25,8 +26,10 @@ async def products(message: types.Message) -> None | types.Message:
                 callback_data=BuyShopItemCallback(shop_item_id=product["id"]).pack()
             )
 
+            photo_file = await base64_to_file(product)
+
             await message.answer_photo(
-                photo=product["photo_url"],
+                photo=photo_file,
                 caption=format_product(product),
                 reply_markup=builder.as_markup(),
                 parse_mode="HTML"
