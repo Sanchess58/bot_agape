@@ -13,31 +13,32 @@ from routers import shops_router
 
 @shops_router.message(F.text == "🛍️ Магазин")
 async def products(message: types.Message) -> None | types.Message:
-    products = await get_products(message.from_user.id)
+    return await message.answer("🚧 Магазин на реконструкции")
+    # products = await get_products(message.from_user.id)
 
-    try:
-        if not products:
-            return await message.answer("Совсем скоро в магазине будут товары за монетки")
+    # try:
+    #     if not products:
+    #         return await message.answer("Совсем скоро в магазине будут товары за монетки")
 
-        for product in products:
-            builder = InlineKeyboardBuilder()
-            builder.button(
-                text="✅ Купить",
-                callback_data=BuyShopItemCallback(shop_item_id=product["id"]).pack()
-            )
+    #     for product in products:
+    #         builder = InlineKeyboardBuilder()
+    #         builder.button(
+    #             text="✅ Купить",
+    #             callback_data=BuyShopItemCallback(shop_item_id=product["id"]).pack()
+    #         )
 
-            photo_file = await base64_to_file(product)
+    #         photo_file = await base64_to_file(product)
 
-            await message.answer_photo(
-                photo=photo_file,
-                caption=format_product(product),
-                reply_markup=builder.as_markup(),
-                parse_mode="HTML"
-            )
+    #         await message.answer_photo(
+    #             photo=photo_file,
+    #             caption=format_product(product),
+    #             reply_markup=builder.as_markup(),
+    #             parse_mode="HTML"
+    #         )
 
-    except Exception as e:
-        logging.error(e)
-        return await message.answer("⚠️ Ошибка при получении товаров.\n Обратитесь к @sancheser")
+    # except Exception as e:
+    #     logging.error(e)
+    #     return await message.answer("⚠️ Ошибка при получении товаров.\n Обратитесь к @sancheser")
 
 
 @shops_router.callback_query(BuyShopItemCallback.filter())
